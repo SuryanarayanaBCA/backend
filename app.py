@@ -45,11 +45,17 @@ import base64
 # ---------------- APP SETUP ----------------
 app = Flask(__name__)
 
+# ✅ CORS: allow Netlify + local (set FRONTEND_ORIGINS in Koyeb)
+frontend_origins = os.getenv(
+    "FRONTEND_ORIGINS",
+    "http://localhost:5500,http://127.0.0.1:5500"
+)
+
+origins_list = [o.strip() for o in frontend_origins.split(",") if o.strip()]
+
 CORS(
     app,
-    resources={r"/api/*": {
-        "origins": ["http://localhost:5500", "http://127.0.0.1:5500"]
-    }},
+    resources={r"/api/*": {"origins": origins_list}},
     supports_credentials=True,
     allow_headers=["Authorization", "Content-Type"],
     methods=["GET", "POST", "OPTIONS"]
@@ -57,10 +63,21 @@ CORS(
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
+
 # ---------------- FIREBASE INIT ----------------
-cred = credentials.Certificate(os.path.join(BASE_DIR, "firebase_key.json"))
+import json
+
 if not firebase_admin._apps:
+    firebase_json = os.getenv("FIREBASE_KEY_JSON")
+
+    if not firebase_json:
+        raise RuntimeError("FIREBASE_KEY_JSON env var missing in Koyeb")
+
+    cred_dict = json.loads(firebase_json)
+    cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred)
+
     
     
     # ---------------- BREVO CONFIG ----------------
@@ -702,4 +719,5 @@ def send_ticket_email(to_email, subject, body, attachment_path=None):
 # ---------------- RUN SERVER ----------------
 if __name__ == "__main__":
     app.run()
+
 
