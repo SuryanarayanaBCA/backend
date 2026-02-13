@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from flask import render_template_string
 from xhtml2pdf import pisa
-
+from werkzeug.middleware.proxy_fix import ProxyFix
 import firebase_admin
 from firebase_admin import credentials, auth
 
@@ -43,7 +43,7 @@ from sib_api_v3_sdk.rest import ApiException
 import base64
 
 # ---------------- APP SETUP ----------------
-app = app = Flask(__name__)
+app  = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -66,12 +66,6 @@ CORS(
     allow_headers=["Authorization", "Content-Type"],
     methods=["GET", "POST", "OPTIONS"]
 )
-
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
-
 # ---------------- FIREBASE INIT ----------------
 import json
 
@@ -84,16 +78,18 @@ if not firebase_admin._apps:
     cred_dict = json.loads(firebase_json)
     cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred)
-
-    
-    
-    # ---------------- BREVO CONFIG ----------------
+  # ---------------- BREVO CONFIG ----------------
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-brevo_config = sib_api_v3_sdk.Configuration()
-brevo_config.api_key['api-key'] = BREVO_API_KEY
-brevo_api = sib_api_v3_sdk.TransactionalEmailsApi(
-    sib_api_v3_sdk.ApiClient(brevo_config)
-)
+brevo_api = None
+
+if BREVO_API_KEY:
+    brevo_config = sib_api_v3_sdk.Configuration()
+    brevo_config.api_key["api-key"] = BREVO_API_KEY
+    brevo_api = sib_api_v3_sdk.TransactionalEmailsApi(
+        sib_api_v3_sdk.ApiClient(brevo_config)
+    )
+else:
+    print("⚠ BREVO_API_KEY not set. Emails disabled.")
 
 
 # ---------------- MYSQL CONFIG ----------------
@@ -241,7 +237,7 @@ def confirm_booking():
     return jsonify({
         "success": True,
         "ticket_id": ticket_id,
-        "download_url": f"http://127.0.0.1:5000/api/ticket-pdf/{ticket_id}"
+        "download_url": request.url_root.rstrip("/") + f"/api/ticket-pdf/{ticket_id}"
     }), 201
 
 # =========================================================
@@ -689,14 +685,17 @@ def admin_revoke_booking():
 
 
 def send_ticket_email(to_email, subject, body, attachment_path=None):
+    if not brevo_api:
+        print("⚠ Email skipped (Brevo not configured)")
+        return
+
     try:
         sender = {
             "name": "ParksMart",
-            "email": "dmnprksmrt@gmail.com"  # must be verified in Brevo
+            "email": "dmnprksmrt@gmail.com"
         }
 
         to = [{"email": to_email}]
-
         attachments = []
 
         if attachment_path:
@@ -723,13 +722,16 @@ def send_ticket_email(to_email, subject, body, attachment_path=None):
         print("❌ Brevo Error:", e)
 
 
+
 @app.route("/health", methods=["GET"])
 def health():
     return {"status": "ok", "service": "ParkSmart Backend"}, 200
 
 # ---------------- RUN SERVER ----------------
 if __name__ == "__main__":
-    app.run()
+    port = int(os.getenv("PORT", "8000"))
+    app.run(host="0.0.0.0", port=port)
+
 
 
 
