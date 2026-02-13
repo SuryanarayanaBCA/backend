@@ -716,8 +716,13 @@ def send_ticket_email(to_email, subject, body, attachment_path=None):
         print("❌ Brevo Error:", e)
 
 
+@app.route("/health", methods=["GET"])
+def health():
+    return {"status": "ok", "service": "ParkSmart Backend"}, 200
+
 # ---------------- RUN SERVER ----------------
 if __name__ == "__main__":
     app.run()
+
 
 
