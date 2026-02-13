@@ -43,9 +43,15 @@ from sib_api_v3_sdk.rest import ApiException
 import base64
 
 # ---------------- APP SETUP ----------------
-app = Flask(__name__)
+app = app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# ✅ CORS: allow Netlify + local (set FRONTEND_ORIGINS in Koyeb)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+# ---------------- CORS (Frontend Domains) ----------------
+# ✅ Set in Koyeb:
+# FRONTEND_ORIGINS="https://suryanarayanabca.github.io,https://ornate-travesseiro-f18d95.netlify.app,http://localhost:5500,http://127.0.0.1:5500"
 frontend_origins = os.getenv(
     "FRONTEND_ORIGINS",
     "http://localhost:5500,http://127.0.0.1:5500"
@@ -60,6 +66,7 @@ CORS(
     allow_headers=["Authorization", "Content-Type"],
     methods=["GET", "POST", "OPTIONS"]
 )
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -723,6 +730,7 @@ def health():
 # ---------------- RUN SERVER ----------------
 if __name__ == "__main__":
     app.run()
+
 
 
 
