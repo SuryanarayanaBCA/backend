@@ -64,8 +64,14 @@ CORS(
     resources={r"/api/*": {"origins": origins_list}},
     supports_credentials=True,
     allow_headers=["Authorization", "Content-Type"],
-    methods=["GET", "POST", "OPTIONS"]
+    methods=["GET", "POST", "OPTIONS"],
+    expose_headers=["Content-Disposition"],
 )
+
+@app.route("/api/<path:any_path>", methods=["OPTIONS"])
+def handle_options(any_path):
+    return ("", 204)
+
 # ---------------- FIREBASE INIT ----------------
 import json
 
@@ -731,6 +737,7 @@ def health():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
