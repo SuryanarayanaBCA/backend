@@ -65,11 +65,23 @@ CORS(
     supports_credentials=True,
     allow_headers=["Authorization", "Content-Type"],
     methods=["GET", "POST", "OPTIONS"],
-    expose_headers=["Content-Disposition"],
+    expose_headers=["Content-Disposition"]
 )
 
-@app.route("/api/<path:any_path>", methods=["OPTIONS"])
-def handle_options(any_path):
+# 🔥 ADD THIS (IMPORTANT)
+@app.after_request
+def apply_cors(response):
+    origin = request.headers.get("Origin")
+    if origin in origins_list:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
+
+
+@app.route("/api/<path:path>", methods=["OPTIONS"])
+def options_handler(path):
     return ("", 204)
 
 # ---------------- FIREBASE INIT ----------------
@@ -737,6 +749,7 @@ def health():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
