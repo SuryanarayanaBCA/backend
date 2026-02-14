@@ -68,20 +68,6 @@ CORS(
     expose_headers=["Content-Disposition"]
 )
 
-
-
-
-# 🔥 ADD THIS (IMPORTANT)
-@app.after_request
-def apply_cors(response):
-    origin = request.headers.get("Origin")
-    if origin in origins_list:
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-    return response
-
 # ---------------- FIREBASE INIT ----------------
 import json
 
@@ -749,6 +735,7 @@ def health():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
