@@ -70,6 +70,7 @@ CORS(
 
 
 
+
 # 🔥 ADD THIS (IMPORTANT)
 @app.after_request
 def apply_cors(response):
@@ -80,11 +81,6 @@ def apply_cors(response):
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         response.headers["Access-Control-Allow-Credentials"] = "true"
     return response
-
-
-@app.route("/api/<path:path>", methods=["OPTIONS"])
-def options_handler(path):
-    return ("", 204)
 
 # ---------------- FIREBASE INIT ----------------
 import json
@@ -119,7 +115,6 @@ db_config = {
     "password": os.getenv("MYSQLPASSWORD") or os.getenv("DB_PASSWORD"),
     "database": os.getenv("MYSQLDATABASE") or os.getenv("DB_NAME"),
     "port": int(os.getenv("MYSQLPORT", "3306")),
-    os.getenv("FRONTEND_ORIGINS"),
     "autocommit": True
 }
 
@@ -754,6 +749,7 @@ def health():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
