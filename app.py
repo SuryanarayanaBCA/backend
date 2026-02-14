@@ -68,6 +68,11 @@ CORS(
     expose_headers=["Content-Disposition"]
 )
 
+@app.route("/api/<path:path>", methods=["OPTIONS"])
+def options_handler(path):
+    return ("", 204)
+
+
 # 🔥 ADD THIS (IMPORTANT)
 @app.after_request
 def apply_cors(response):
@@ -112,12 +117,14 @@ else:
 
 # ---------------- MYSQL CONFIG ----------------
 db_config = {
-    "host": os.getenv("DB_HOST"),
-    "user": os.getenv("DB_USER"),
-    "password": os.getenv("DB_PASSWORD"),
-    "database": os.getenv("DB_NAME"),
+    "host": os.getenv("MYSQLHOST") or os.getenv("DB_HOST"),
+    "user": os.getenv("MYSQLUSER") or os.getenv("DB_USER"),
+    "password": os.getenv("MYSQLPASSWORD") or os.getenv("DB_PASSWORD"),
+    "database": os.getenv("MYSQLDATABASE") or os.getenv("DB_NAME"),
+    "port": int(os.getenv("MYSQLPORT", "3306")),
     "autocommit": True
 }
+
 
 
 def get_db():
@@ -749,6 +756,7 @@ def health():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
