@@ -15,7 +15,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 import qrcode
-
+import ssl
 from dotenv import load_dotenv
 import os
 
@@ -99,12 +99,14 @@ else:
 
 # ---------------- MYSQL CONFIG ----------------
 db_config = {
-    "host": os.getenv("MYSQLHOST") or os.getenv("DB_HOST"),
-    "user": os.getenv("MYSQLUSER") or os.getenv("DB_USER"),
-    "password": os.getenv("MYSQLPASSWORD") or os.getenv("DB_PASSWORD"),
-    "database": os.getenv("MYSQLDATABASE") or os.getenv("DB_NAME"),
+    "host": os.getenv("MYSQLHOST"),
+    "user": os.getenv("MYSQLUSER"),
+    "password": os.getenv("MYSQLPASSWORD"),
+    "database": os.getenv("MYSQLDATABASE"),
     "port": int(os.getenv("MYSQLPORT", "3306")),
-    "autocommit": True
+    "autocommit": True,
+    "ssl_ca": None,
+    "ssl_disabled": False
 }
 
 
@@ -738,6 +740,7 @@ def health():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
