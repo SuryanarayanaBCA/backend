@@ -61,7 +61,10 @@ origins_list = [o.strip() for o in frontend_origins.split(",") if o.strip()]
 
 CORS(
     app,
-    resources={r"/api/*": {"origins": origins_list}},
+    resources={
+        r"/api/*": {"origins": origins_list},
+        r"/health": {"origins": origins_list}
+    },
     supports_credentials=True,
     allow_headers=["Authorization", "Content-Type"],
     methods=["GET", "POST", "OPTIONS"],
@@ -735,6 +738,7 @@ def health():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
