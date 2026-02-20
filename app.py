@@ -736,10 +736,23 @@ def send_ticket_email(to_email, subject, body, attachment_path=None):
 def health():
     return {"status": "ok", "service": "ParkSmart Backend"}, 200
 
+@app.route("/api/db-test", methods=["GET"])
+def db_test():
+    try:
+        db = get_db()
+        cur = db.cursor()
+        cur.execute("SELECT 1")
+        cur.fetchone()
+        cur.close()
+        db.close()
+        return jsonify({"ok": True}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 # ---------------- RUN SERVER ----------------
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
